@@ -3,7 +3,11 @@ import { trpc } from './utils/trpc';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client/links/httpBatchLink';
 import IndexPage from './pages/IndexPage';
-import './App.css';
+import Navbar from './components/Navbar';
+import { ThemeProvider } from '@mui/material/styles';
+import { theme } from './theme';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 function App() {
   const [queryClient] = useState(
@@ -36,7 +40,12 @@ function App() {
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <IndexPage />
+        <ThemeProvider theme={theme}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Navbar />
+            <IndexPage />
+          </LocalizationProvider>
+        </ThemeProvider>
       </QueryClientProvider>
     </trpc.Provider>
   );

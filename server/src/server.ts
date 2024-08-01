@@ -1,13 +1,14 @@
 import express from 'express';
 import cors from 'cors';
 import * as trpcExpress from '@trpc/server/adapters/express';
-import { userRouter } from './routers/userRouter';
+import { userRouter } from './routers/user.router';
 import { mergeRouters } from './trpc';
 import { inferAsyncReturnType } from '@trpc/server';
+import { eventRouter } from './routers/event.router';
 
 const PORT = 3000;
 
-const appRouter = mergeRouters(userRouter);
+const appRouter = mergeRouters(userRouter, eventRouter);
 
 // created for each request
 const createContext = ({
