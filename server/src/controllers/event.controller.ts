@@ -15,6 +15,12 @@ export async function getAllEvents(userId: string): Promise<EventType[]> {
     });
 }
 
-export async function createEvent(data: CreateEventType) {
-  return await prisma.event.create({ data });
+export async function createEvent(data: CreateEventType): Promise<EventType> {
+  return await prisma.event.create({ data }).catch((e) => {
+    console.log(e);
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Error creating event',
+    });
+  });
 }

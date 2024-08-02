@@ -5,8 +5,13 @@ import { commonSchema } from './common.model';
 export const createEventSchema = z.object({
   name: z.string().min(1, 'Event name is required'),
   type: z.string().min(1, 'Event type is required'),
-  date: z.date(),
-  duration: z.number().optional(),
+  date: z.string().transform((val) => new Date(val)),
+  advanceReminder: z
+    .string()
+    .transform((val) => new Date(val))
+    .nullable(),
+  notes: z.string().nullable(),
+  duration: z.number().nullable(),
   userId: z.string(),
 });
 export type CreateEventType = z.infer<typeof createEventSchema>;

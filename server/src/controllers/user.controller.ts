@@ -12,8 +12,10 @@ export async function getUserByEmail(email: string): Promise<UserType | null> {
 }
 
 export async function addUser(userData: CreateUserType): Promise<UserType> {
-  return await prisma.user
-    .create({ data: userData })
-    .then((data) => data)
-    .catch();
+  return await prisma.user.create({ data: userData }).catch(() => {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Error creating user',
+    });
+  });
 }

@@ -1,7 +1,7 @@
 import { publicProcedure, router } from '../trpc';
 import { z } from 'zod';
-import { getAllEvents } from '../controllers/event.controller';
-import { EventType } from '../db/models/event.model';
+import { createEvent, getAllEvents } from '../controllers/event.controller';
+import { createEventSchema, EventType } from '../db/models/event.model';
 
 // const events: Event[] = [
 //   {
@@ -17,13 +17,19 @@ import { EventType } from '../db/models/event.model';
 // ];
 
 export const eventRouter = router({
+  createEvent: publicProcedure
+    .input(createEventSchema)
+    .mutation(async ({ input }): Promise<EventType> => {
+      return createEvent({
+        ...input,
+        notes: input.notes || null,
+      });
+    }),
   getEventsByUserId: publicProcedure
     .input(z.object({ userId: z.string() }))
-    .query(
-      async ({ input }): Promise<EventType[]> => {
-        if (!input) return Promise.resolve([]);
+    .query(async ({ input }): Promise<EventType[]> => {
+      if (!input) return Promise.resolve([]);
 
-        return getAllEvents(input.userId);
-      }
-    ),
+      return getAllEvents(input.userId);
+    }),
 });

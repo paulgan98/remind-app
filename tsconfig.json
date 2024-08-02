@@ -7,5 +7,5 @@
     "strict": true,
     "esModuleInterop": true
   },
-  "include": ["server/src/**/*", "client/src/**/*", "shared/src/**/*"]
+  "include": ["server/src/**/*", "client/src/**/*", "shared/src/**/*", "types/types.ts"]
 }

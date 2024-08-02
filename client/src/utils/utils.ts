@@ -1,4 +1,4 @@
-export const updateField = (field: string, val: any, obj: Object): Object => {
+export const updateField = (field: string, val: any, obj: any): typeof obj => {
   return {
     ...obj,
     [field]: val,

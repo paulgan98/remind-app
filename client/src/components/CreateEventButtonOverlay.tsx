@@ -5,7 +5,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Grid,
   IconButton,
   MenuItem,
   Slide,
@@ -15,6 +14,8 @@ import {
 import React, { useState } from 'react';
 import { updateField } from '../utils/utils';
 import { DatePicker } from '@mui/x-date-pickers';
+import dayjs from 'dayjs';
+import { trpc } from '../utils/trpc';
 
 const sx: SxProps = {
   '& .MuiDialog-container': {
@@ -24,23 +25,65 @@ const sx: SxProps = {
   },
 };
 
-const Transition = React.forwardRef(function Transition(props, ref) {
-  return <Slide direction="left" timeout={400} ref={ref} {...props} />;
+const Transition = React.forwardRef(function Transition(props: any, ref) {
+  return (
+    <Slide direction='left' timeout={400} ref={ref} {...props}>
+      {props.children}
+    </Slide>
+  );
 });
 
-const CreateEventButtonOverlay: React.FC = () => {
-  const [openDialog, setOpenDialog] = useState(false);
-  const [eventData, setEventData] = useState({});
+type CreateEventData = {
+  userId: string;
+  name: string;
+  type: 'birthday' | 'custom';
+  date: Date;
+  duration: number | null;
+  advanceReminder: Date | null;
+  notes: string;
+};
 
-  const handleSubmit = () => {
-    console.log(eventData);
-    setEventData({});
+const defaultCreateEventData: CreateEventData = {
+  userId: '66ac0103139d6782f9caae10',
+  name: '',
+  type: 'birthday',
+  date: new Date(),
+  duration: null,
+  advanceReminder: new Date(),
+  notes: '',
+};
+
+const CreateEventButtonOverlay: React.FC = () => {
+  const trpcUtils = trpc.useUtils();
+  const [openDialog, setOpenDialog] = useState(false);
+  const [eventData, setEventData] = useState<CreateEventData>(
+    defaultCreateEventData
+  );
+
+  const createEvent = trpc.createEvent.useMutation({
+    onSuccess: () => {
+      console.log('Event created');
+      trpcUtils.getEventsByUserId.invalidate();
+    },
+  });
+
+  const handleSubmit = async () => {
+    if (eventData.date === undefined) {
+      console.error('Date is required');
+      return;
+    }
+    await createEvent.mutateAsync({
+      ...eventData,
+      date: eventData.date.toISOString(),
+      advanceReminder: eventData.advanceReminder?.toISOString() || null,
+    });
+    setEventData(defaultCreateEventData);
   };
 
   return (
     <>
       <Button
-        variant="outlined"
+        variant='outlined'
         startIcon={<Add />}
         onClick={() => {
           setOpenDialog(true);
@@ -65,14 +108,15 @@ const CreateEventButtonOverlay: React.FC = () => {
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <>New Event</>
-          <IconButton size="small" onClick={() => setOpenDialog(false)}>
+          <IconButton size='small' onClick={() => setOpenDialog(false)}>
             <Close />
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ overflowY: 'auto', flexShrink: 1 }}>
           <TextField
             required
-            label="Name"
+            label='Name'
+            value={eventData.name}
             onChange={(e) => {
               setEventData(updateField('name', e.target.value, eventData));
             }}
@@ -80,9 +124,9 @@ const CreateEventButtonOverlay: React.FC = () => {
           <TextField
             required
             select
-            id="select-type"
-            label="Type"
-            defaultValue="birthday"
+            id='select-type'
+            label='Type'
+            value={eventData.type}
             onChange={(e) => {
               setEventData(updateField('type', e.target.value, eventData));
             }}
@@ -94,24 +138,37 @@ const CreateEventButtonOverlay: React.FC = () => {
             ))}
           </TextField>
           <DatePicker
-            label="Date"
+            label='Date'
+            value={dayjs(eventData.date)}
             onChange={(date) => {
               setEventData(
                 updateField(
                   'date',
-                  new Date(date?.month, date?.date, date?.year),
+                  date ? new Date(date.toDate()) : null,
                   eventData
                 )
               );
             }}
           />
-          <DatePicker label="Advance Reminder" />
+          <DatePicker
+            label='Advance Reminder'
+            value={dayjs(eventData.advanceReminder)}
+            onChange={(date) => {
+              setEventData(
+                updateField(
+                  'advanceReminder',
+                  date ? new Date(date.toDate()) : null,
+                  eventData
+                )
+              );
+            }}
+          />
           <TextField
             multiline
             minRows={3}
-            id="textfield-notes"
-            label="Notes"
-            // defaultValue="birthday"
+            id='textfield-notes'
+            label='Notes'
+            value={eventData.notes}
             onChange={(e) => {
               setEventData(updateField('notes', e.target.value, eventData));
             }}
